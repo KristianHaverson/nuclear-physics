@@ -45,3 +45,4 @@
 *.sif
 *.root
 workspace/
+‎gui/moc_MenuWindow.cpp
