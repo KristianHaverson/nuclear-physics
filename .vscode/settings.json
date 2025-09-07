@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "root_test.C": "cpp",
+        "cmath": "cpp",
+        "complex": "cpp"
+    }
+}

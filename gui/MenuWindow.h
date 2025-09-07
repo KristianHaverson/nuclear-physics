@@ -17,6 +17,7 @@ public slots:
 
 private slots:
     void runRoot();
+    void runRootTerm();
     void runAZURE();
     void runGeant4();
     void runSRIM();
@@ -24,12 +25,14 @@ private slots:
 
 private:
     QPushButton *rootBtn;
+    QPushButton *rootTermBtn;
     QPushButton *geantBtn;
     QPushButton *srimBtn;
     QPushButton *AzureBtn;
     QPushButton *exitBtn;
     
     QProcess *rootProcess; 
+    QProcess *rootTermProcess; 
     QProcess *geantProcess;
     QProcess *srimProcess;
     QProcess *azureProcess;

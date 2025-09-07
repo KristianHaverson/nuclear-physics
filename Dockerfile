@@ -138,6 +138,7 @@ RUN echo -e '#!/bin/bash\n/opt/software/gui/menu "$@"' > /usr/local/bin/menu && 
 ENV PATH="/opt/software/gui:$PATH"
 
 
+RUN apt-get install -y --no-install-recommends  xterm
 
 
 #GUI

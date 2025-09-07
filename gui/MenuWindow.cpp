@@ -14,6 +14,7 @@ MenuWindow::MenuWindow(QWidget *parent) : QWidget(parent) {
     resize(400, 300);
 
     rootProcess  = new QProcess(this);
+    rootTermProcess  = new QProcess(this);
     geantProcess = new QProcess(this);
     srimProcess  = new QProcess(this);
     azureProcess = new QProcess(this);
@@ -21,20 +22,22 @@ MenuWindow::MenuWindow(QWidget *parent) : QWidget(parent) {
     QVBoxLayout *layout = new QVBoxLayout(this);
 
     // --- Row 0: Initialize Geant4 ---
-    QLabel *initLabel = new QLabel("<b>Initialise</b>");
-    layout->addWidget(initLabel);
+    //QLabel *initLabel = new QLabel("<b>Initialise</b>");
+    //layout->addWidget(initLabel);
 
-    geantBtn = new QPushButton("Initialise Geant4");
-    layout->addWidget(geantBtn);
 
-    QFrame *line1 = new QFrame();
-    line1->setFrameShape(QFrame::HLine);
-    line1->setFrameShadow(QFrame::Sunken);
-    layout->addWidget(line1);
+    //QFrame *line1 = new QFrame();
+    //line1->setFrameShape(QFrame::HLine);
+    //line1->setFrameShadow(QFrame::Sunken);
+    //layout->addWidget(line1);
 
     // --- Row 1: Test ROOT ---
     QLabel *rootLabel = new QLabel("<b>Test</b>");
     layout->addWidget(rootLabel);
+
+    geantBtn = new QPushButton("Test Geant4");
+    layout->addWidget(geantBtn);
+
 
     rootBtn = new QPushButton("Test ROOT");
     layout->addWidget(rootBtn);
@@ -51,16 +54,20 @@ MenuWindow::MenuWindow(QWidget *parent) : QWidget(parent) {
     srimBtn = new QPushButton("Run SRIM");
     layout->addWidget(srimBtn);
 
-    QFrame *line3 = new QFrame();
-    line3->setFrameShape(QFrame::HLine);
-    line3->setFrameShadow(QFrame::Sunken);
-    layout->addWidget(line3);
+    //QFrame *line3 = new QFrame();
+    //line3->setFrameShape(QFrame::HLine);
+    //line3->setFrameShadow(QFrame::Sunken);
+    //layout->addWidget(line3);
 
     // --- Row 3: Run AZURE2 ---
 
-
     AzureBtn = new QPushButton("Run AZURE2");
     layout->addWidget(AzureBtn);
+
+
+    rootTermBtn = new QPushButton("Run ROOT");
+    layout->addWidget(rootTermBtn);
+
 
     QFrame *line4 = new QFrame();
     line4->setFrameShape(QFrame::HLine);
@@ -75,6 +82,7 @@ MenuWindow::MenuWindow(QWidget *parent) : QWidget(parent) {
 
     // --- signal/slot connections ---
     connect(rootBtn,  &QPushButton::clicked, this, &MenuWindow::runRoot);
+    connect(rootTermBtn,  &QPushButton::clicked, this, &MenuWindow::runRootTerm);
     connect(geantBtn, &QPushButton::clicked, this, &MenuWindow::runGeant4);
     connect(srimBtn,  &QPushButton::clicked, this, &MenuWindow::runSRIM);
     connect(AzureBtn, &QPushButton::clicked, this, &MenuWindow::runAZURE);
@@ -94,17 +102,66 @@ MenuWindow::~MenuWindow() {
 
 void MenuWindow::runRoot() {
     if(rootProcess->state() == QProcess::NotRunning) {
-        rootProcess->start("root", QStringList() << "-l" << "/nuclear-physics/containerScripts/root_test.C");
+
+    auto attachOutput = [](QProcess* process) {
+        QObject::connect(process, &QProcess::readyReadStandardOutput, [process]() {
+            std::cout << process->readAllStandardOutput().toStdString();
+        });
+        QObject::connect(process, &QProcess::readyReadStandardError, [process]() {
+            std::cerr << process->readAllStandardError().toStdString();
+        });
+    };
+
+    attachOutput(rootProcess); // attach stdout/stderr
+
+
+
+    rootProcess->start("root", QStringList() << "-l" << "/nuclear-physics/containerScripts/root_test.C");
         if (!rootProcess->waitForStarted(3000)) {
             QMessageBox::warning(this, "ROOT", "Failed to start ROOT process.");
         }
     } else {
         QMessageBox::information(this, "ROOT", "ROOT is already running.");
     }
+
+    //if (rootProcess->state() != QProcess::NotRunning) {
+    //    rootProcess->kill();      // force terminate any lingering process
+    //    rootProcess->waitForFinished(1000);
+    //}
+
 }
 
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
+void MenuWindow::runRootTerm() {
+    if (rootTermProcess->state() != QProcess::NotRunning) {
+        QMessageBox::information(this, "ROOT", "ROOT is already running.");
+        return;
+    }
+
+    auto attachOutput = [](QProcess* process) {
+        QObject::connect(process, &QProcess::readyReadStandardOutput, [process]() {
+            std::cout << process->readAllStandardOutput().toStdString();
+        });
+        QObject::connect(process, &QProcess::readyReadStandardError, [process]() {
+            std::cerr << process->readAllStandardError().toStdString();
+        });
+    };
+    attachOutput(rootTermProcess); // attach stdout/stderr
+    
+
+    QString program = "xterm";
+    QStringList args;
+    args << "-hold" << "-e" << "root";
+    rootTermProcess->start(program, args);
+
+
+    if (!rootTermProcess->waitForStarted(3000)) {
+        QMessageBox::warning(this, "ROOT", "Failed to start ROOT terminal process.");
+    }
+}
+
+
 
 
 
@@ -129,7 +186,6 @@ void MenuWindow::runGeant4() {
         return;
     }
 
-    // Helper to print output/error to terminal
     auto attachOutput = [](QProcess* process) {
         QObject::connect(process, &QProcess::readyReadStandardOutput, [process]() {
             std::cout << process->readAllStandardOutput().toStdString();
