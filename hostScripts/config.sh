@@ -1,6 +1,5 @@
 
 #!/bin/bash
-# Project-wide configuration 
 
 DOCKER_IMAGE="nuclear-physics"
 TAR_FILE="nuclear-physics.tar"

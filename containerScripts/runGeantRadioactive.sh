@@ -1,5 +1,8 @@
 #!/bin/bash
 
+source /nuclear-physics/hostScripts/config.sh 
+
+
 echo "=== Setting up Geant4 rdecay01 Example ==="
 
 echo "Copying Geant4 examples..."
